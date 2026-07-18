@@ -1,4 +1,4 @@
-export const books = [
+const books = [
     {
         id: 1,
         name: "חי צקלופדיה",
@@ -28,3 +28,5 @@ export const books = [
         ]
     }
 ];
+
+export default books;
