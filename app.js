@@ -1,4 +1,6 @@
 import express from 'express';
+import connectDB from './config/db.js';
+
 import mainRouter from './routes/index.route.js'; 
 import { addCurrentDate, logGetRequestDate, errorHandler } from './middlewares/custom.middleware.js';
 
@@ -8,6 +10,7 @@ import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 
 const app = express();
+connectDB();
 const PORT = 5000;
 
 // הגדרת מגביל הבקשות
