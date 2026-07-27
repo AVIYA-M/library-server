@@ -10,9 +10,21 @@ export const createUserSchema = Joi.object({
         'string.email': 'כתובת האימייל אינה תקינה',
         'any.required': 'כתובת האימייל היא שדה חובה'
     }),
-    password: Joi.string().min(6).required().messages({
+    phone: Joi.string().pattern(/^0[2-9]\d{7,8}$|^05[0-9]{8}$/).required().messages({
+        'string.pattern.base': 'מספר הטלפון אינו תקין (נדרש מספר טלפון ישראלי)',
+        'any.required': 'מספר הטלפון הוא שדה חובה'
+    }),
+    password: Joi.string().min(4).required().messages({
         'string.empty': 'הסיסמה אינה יכולה להיות ריקה',
-        'string.min': 'הסיסמה חייבת להכיל לפחות 6 תווים',
+        'string.min': 'הסיסמה חייבת להכיל לפחות 4 תווים',
         'any.required': 'הסיסמה היא שדה חובה'
-    })
+    }),
+    borrowedBooks: Joi.array().items(
+        Joi.object({
+             bookCode: Joi.string().required(),
+             borrowedName: Joi.date().required()
+        })
+    ).optional()    
+
+
 });
