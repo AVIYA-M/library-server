@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -37,6 +38,40 @@ const userSchema = new mongoose.Schema({
 
 });
 
+userSchema.methods.toJSON = function () {
+    const userObject = this.toObject();
+    delete userObject.password; 
+    userObject.id = userObject._id; 
+    delete userObject._id;     
+    delete userObject.__v;     
+    return userObject;
+};
+
+userSchema.pre('save', async function () {
+    if (!this.password) return;
+
+    try {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+    } catch (error) {
+        throw error;
+    }
+});
+
+userSchema.statics.findByCredentials = async function (email, password) {
+
+    const user = await this.findOne({ email });
+    if (!user) {
+        throw new Error('שמך או הסיסמה שלך שגויים');
+    }
+
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    if (!isPasswordMatch) {
+        throw new Error('שמך או הסיסמה שלך שגויים');
+    }
+
+    return user;
+};
 
 const User = mongoose.model('User', userSchema);
 export default User;

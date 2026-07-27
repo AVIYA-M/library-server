@@ -48,14 +48,11 @@ export const signIn = async (req, res) => {
             return res.status(400).json({ message: "נא להזין אימייל וסיסמה" });
         }
 
-        const user = await User.findOne({ email, password });
-        if (!user) {
-            return res.status(401).json({ message: "אימייל או סיסמה שגויים" });
-        }
+        const user = await User.findByCredentials(email, password);
 
         res.status(200).json({ message: "התחברת בהצלחה!", username: user.username });
     } catch (error) {
-        res.status(500).json({ message: "שגיאה בהתחברות", error: error.message });
+        res.status(401).json({ message: "אימייל או סיסמה שגויים", error: error.message });
     }
 };
 
