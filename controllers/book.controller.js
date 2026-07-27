@@ -17,7 +17,7 @@ export const getAllBooks = async (req, res, next) => {
             .skip((page - 1) * limit)
             .limit(limit);
 
-        res.json({
+        res.status(200).json({
             currentPage: page,
             limitPerPage: limit,
             totalResults,
@@ -36,7 +36,7 @@ export const getBookById = async (req, res, next) => {
         if (!book) {
             return res.status(404).json({ message: "הספר המבוקש לא נמצא במערכת" });
         }
-        res.json(book);
+        res.status(200).json(book);
     } catch (error) {
         next(error);
     }
@@ -45,14 +45,11 @@ export const getBookById = async (req, res, next) => {
 // 3. יצירת ספר חדש
 export const createBook = async (req, res, next) => {
     try {
-        const { title, categories, price, author } = req.body;
-
-        if (!title || !price) {
-            return res.status(400).json({ message: "נא לספק לפחות שם ספר  ומחיר" });
-        }
+        const { title, categories, price, author ,bookCode} = req.body;
 
         const newBook = new Book({
             title,
+            bookCode,
             price: Number(price),
             categories: categories || [],
             author
@@ -68,11 +65,9 @@ export const createBook = async (req, res, next) => {
 // 4. עדכון ספר לפי ID
 export const updateBook = async (req, res, next) => {
     try {
-        const { title, categories, price, author } = req.body;
-
         const updatedBook = await Book.findByIdAndUpdate(
             req.params.id,
-            { title, categories, price, author },
+            req.body,
             { new: true, runValidators: true }
         );
 
@@ -80,7 +75,7 @@ export const updateBook = async (req, res, next) => {
             return res.status(404).json({ message: "הספר המבוקש לעדכון לא נמצא" });
         }
 
-        res.json(updatedBook);
+        res.status(200).json(updatedBook);
     } catch (error) {
         next(error);
     }
@@ -93,7 +88,24 @@ export const deleteBook = async (req, res, next) => {
         if (!deletedBook) {
             return res.status(404).json({ message: "הספר המבוקש למחיקה לא נמצא" });
         }
-        res.json({ message: "הספר נמחק בהצלחה", book: deletedBook });
+        res.status(200).json({ message: "הספר נמחק בהצלחה", book: deletedBook });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// 6. קבלת ספרים לפי קטגוריה 
+export const getBooksByCategory = async (req, res, next) => {
+    try {
+        const { categoryName } = req.params; 
+
+        const books = await Book.find({ categories: categoryName });
+
+        res.status(200).json({
+            category: categoryName,
+            totalResults: books.length,
+            data: books
+        });
     } catch (error) {
         next(error);
     }
