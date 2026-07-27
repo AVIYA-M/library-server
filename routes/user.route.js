@@ -8,7 +8,8 @@ import { createUserSchema } from '../schemas/user.schema.js';
 
 router.get('/', userController.getAllUsers);
 router.post('/sign-up', validateBody(createUserSchema), userController.signUp);
-
 router.post('/sign-in', userController.signIn);
+router.post('/borrow', userController.borrowBook);
+
 
 export default router;

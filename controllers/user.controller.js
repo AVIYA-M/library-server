@@ -1,4 +1,5 @@
-import users from '../dbUsers.js';
+import User from '../models/user.model.js';
+import Book from '../models/book.model.js';
 
 export const getAllUsers = async (req, res) => {
     try {
@@ -39,8 +40,7 @@ export const signUp = async(req, res) => {
     }
 };
 
-
-export const signIn =async (req, res) => {
+export const signIn = async (req, res) => {
     try {
         const { email, password } = req.body;
 
@@ -56,5 +56,60 @@ export const signIn =async (req, res) => {
         res.status(200).json({ message: "התחברת בהצלחה!", username: user.username });
     } catch (error) {
         res.status(500).json({ message: "שגיאה בהתחברות", error: error.message });
+    }
+};
+
+export const borrowBook = async (req, res, next) => {
+    try {
+        const { userId, bookId, returnDate } = req.body;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "המשתמש לא נמצא" });
+        }
+
+        if (user.borrowedBooks.length >= 3) {
+            return res.status(400).json({ message: "הגעת למגבלה המקסימלית של 3 ספרים מושאלים" });
+        }
+
+        const book = await Book.findById(bookId);
+        if (!book) {
+            return res.status(404).json({ message: "הספר המבוקש לא נמצא במערכת" });
+        }
+
+        // 1. בדיקה האם הספר כבר מושאל על ידי משתמש כלשהו במערכת
+        const isBookAlreadyBorrowed = await User.findOne({
+            "borrowedBooks.bookId": bookId 
+        });
+
+        if (isBookAlreadyBorrowed) {
+            return res.status(400).json({ message: "הספר כרגע מושאל על ידי משתמש אחר" });
+        }
+
+        // 2. בדיקה האם המשתמש הנוכחי כבר השיל את הספר הזה לעצמו
+        const isAlreadyInUserList = user.borrowedBooks.some(
+            (b) => b.bookId && b.bookId.toString() === bookId
+        );
+
+        if (isAlreadyInUserList) {
+            return res.status(400).json({ message: "הספר כבר נמצא ברשימת הספרים המושאלים שלך" });
+        }
+
+        user.borrowedBooks.push({
+            bookId: book._id,
+            bookCode: book.bookCode || book._id.toString(),
+            bookName: book.title,
+            returnDate: returnDate || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+        });
+
+        await user.save();
+
+        res.status(200).json({ 
+            message: "הספר הושאל בהצלחה!", 
+            borrowedBooks: user.borrowedBooks 
+        });
+
+    } catch (error) {
+        next(error);
     }
 };

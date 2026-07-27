@@ -28,8 +28,10 @@ const userSchema = new mongoose.Schema({
     },
     borrowedBooks: [
         {
+            bookId: { type: mongoose.Schema.Types.ObjectId, ref: 'Book' },
             bookCode: { type: String, required: true },
-            bookName: { type: String, required: true }
+            bookName: { type: String, required: true },
+            returnDate: { type: Date, required: true }
         }
     ]
 
